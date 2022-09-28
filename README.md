@@ -41,6 +41,6 @@ To download and import an asset, click on a model card to display the correspond
 
 ## Report an issue
 
-If you feel like you've encountered a bug, or that the plugin lacks an important feature, you can contact us through [Sketchfab's Help Center](https://help.sketchfab.com/hc/en-us/requests/new?type=exporters&subject=Godot+Plugin), or by [creating an issue](https://github.com/sketchfab/godot-plugin/issues/new) in this repository.
+If you feel like you've encountered a bug, or that the plugin lacks an important feature, you can [create an issue](https://github.com/StrayEddy/sketchfab-godot-plugin/issues/new) in this repository.
 
 If you report a bug, please try to append any log from Godot or additional information (Godot version, Operating System...) in your message.

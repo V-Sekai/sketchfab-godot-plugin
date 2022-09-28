@@ -1,5 +1,5 @@
-# Sketchfab Godot Plugin
-**Import models from Sketchfab to Godot (v3.2.0+)**
+# Sketchfab Plugin Redone For Godot 4.0
+**Import models from Sketchfab to Godot (v4.0+)**
 
 * [Installation](#Installation)
 * [Login](#Login)

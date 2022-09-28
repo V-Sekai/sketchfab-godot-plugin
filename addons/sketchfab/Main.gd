@@ -1,4 +1,4 @@
-tool
+@tool
 extends Control
 
 const CONFIG_FILE_PATH = "user://sketchfab.ini"
@@ -34,91 +34,92 @@ const Utils = preload("res://addons/sketchfab/Utils.gd")
 const Api = preload("res://addons/sketchfab/Api.gd")
 var api = Api.new()
 
-onready var search_text = find_node("Search").find_node("Text")
-onready var search_categories = find_node("Search").find_node("Categories")
-onready var search_animated = find_node("Search").find_node("Animated")
-onready var search_staff_picked = find_node("Search").find_node("StaffPicked")
-onready var search_face_count = find_node("Search").find_node("FaceCount")
-onready var search_sort_by = find_node("Search").find_node("SortBy")
-onready var search_domain = find_node("Search").find_node("SearchDomain")
-onready var cta_button = find_node("CTA")
-onready var trailer = find_node("Trailer")
+@onready var search_text = get_node("Search/_/_/Text")
+@onready var search_categories = get_node("Search/_/_3/_/_3/Categories")
+@onready var search_animated = get_node("Search/_/_3/_/Animated")
+@onready var search_staff_picked = get_node("Search/_/_3/_/StaffPicked")
+@onready var search_face_count = get_node("Search/_/_3/_/_2/FaceCount")
+@onready var search_sort_by = get_node("Search/_/_3/_/_/SortBy")
+@onready var search_domain = get_node("Search/_/_/SearchDomain")
+@onready var cta_button = get_node("_2/Paginator/_/Trailer/CTA")
+@onready var trailer = get_node("_2/Paginator/_/Trailer")
+@onready var paginator = get_node("_2/Paginator")
 
-onready var paginator = find_node("Paginator")
+@onready var not_logged = get_node("Header/_/NotLogged")
+@onready var login_name = get_node("Header/_/NotLogged/UserName")
+@onready var login_password = get_node("Header/_/NotLogged/Password")
+@onready var login_button = get_node("Header/_/NotLogged/Login")
 
-onready var not_logged = find_node("NotLogged")
-onready var login_name = not_logged.find_node("UserName")
-onready var login_password = not_logged.find_node("Password")
-onready var login_button = not_logged.find_node("Login")
+@onready var logged = get_node("Header/_/Logged")
+@onready var logged_name = get_node("Header/_/Logged/_/MainBlock/UserName")
+@onready var logged_plan = get_node("Header/_/Logged/_/MainBlock/Plan")
+@onready var logged_avatar = get_node("Header/_/Logged/_/Avatar")
 
-onready var logged = find_node("Logged")
-onready var logged_name = logged.find_node("UserName")
-onready var logged_plan = logged.find_node("Plan")
-onready var logged_avatar = logged.find_node("Avatar")
-
+var editor_interface :EditorInterface
 var cfg
 var can_search
 var must_start_up = true
+var is_ready = false
 
 func _enter_tree():
 	cfg = ConfigFile.new()
 	cfg.load(CONFIG_FILE_PATH)
 
-	find_node("Logo").texture = (
-		Utils.create_texture_from_file("res://addons/sketchfab/sketchfab.png.noimport", get_tree().get_meta("__editor_scale") / 2.0))
-
 func _ready():
-	var editor_scale = get_tree().get_meta("__editor_scale")
-	logged_avatar.rect_min_size *= editor_scale
-	not_logged.rect_min_size *= editor_scale
-	logged.find_node("MainBlock").rect_min_size *= editor_scale
-
+	paginator.editor_interface = editor_interface
+	var editor_scale = 1.0
+	logged_avatar.custom_minimum_size *= editor_scale
+	not_logged.custom_minimum_size *= editor_scale
+	get_node("Header/_/Logged/_/MainBlock").custom_minimum_size *= editor_scale
+	is_ready = true
+	
 func _exit_tree():
 	cfg.save(CONFIG_FILE_PATH)
 
 func _notification(what):
-	if what != NOTIFICATION_VISIBILITY_CHANGED:
-		return
-	if !visible || !must_start_up:
-		return
+	if is_ready:
+		if what != NOTIFICATION_VISIBILITY_CHANGED:
+			return
+		if !visible || !must_start_up:
+			return
 
-	must_start_up = false
+		must_start_up = false
 
-	logged_avatar.max_size = logged_avatar.rect_min_size.y
-	can_search = false
+		logged_avatar.max_size = logged_avatar.custom_minimum_size.y
+		can_search = false
 
-	search_categories.get_popup().add_check_item("All")
-	search_categories.get_popup().connect("index_pressed", self, "_on_Categories_index_pressed")
+		search_categories.get_popup().add_check_item("All")
+		search_categories.get_popup().index_pressed.connect(_on_Categories_index_pressed)
 
-	for item in FACE_COUNT_OPTIONS:
-		search_face_count.add_item(item[0])
-	_commit_face_count(0)
+		for item in FACE_COUNT_OPTIONS:
+			search_face_count.add_item(item[0])
+		_commit_face_count(0)
 
-	for item in SORT_BY_OPTIONS:
-		search_sort_by.add_item(item[0])
-	_commit_sort_by(SORT_BY_DEFAULT_INDEX)
+		for item in SORT_BY_OPTIONS:
+			search_sort_by.add_item(item[0])
+		_commit_sort_by(SORT_BY_DEFAULT_INDEX)
 
-	for item in SEARCH_DOMAIN:
-		search_domain.add_item(item[0])
-	_commit_domain(DEFAULT_DOMAIN)
-	search_domain.hide()
-	cta_button.hide()
+		for item in SEARCH_DOMAIN:
+			search_domain.add_item(item[0])
+		_commit_domain(DEFAULT_DOMAIN)
+		search_domain.hide()
+		cta_button.hide()
 
-	logged.visible = false
-	not_logged.visible = false
-	login_name.text = cfg.get_value("api", "user", "")
+		logged.visible = false
+		not_logged.visible = false
+		login_name.text = cfg.get_value("api", "user", "")
 
-	if cfg.has_section_key("api", "token"):
-		api.set_token(cfg.get_value("api", "token"))
-		yield(_populate_login(), "completed")
-	else:
-		not_logged.visible = true
+		if cfg.has_section_key("api", "token"):
+			api.set_token(cfg.get_value("api", "token"))
+			await _populate_login()
+		else:
+			not_logged.visible = true
 
-	yield(_load_categories(), "completed")
-	_commit_category(0)
+		await _load_categories()
+		_commit_category(0)
 
-	can_search = true
-	_search()
+		can_search = true
+		_search()
 
 ##### UI
 
@@ -171,13 +172,13 @@ func _login():
 	cfg.set_value("api", "user", login_name.text)
 
 	_set_login_disabled(true)
-	var token = yield(api.login(login_name.text, login_password.text), "completed")
+	var token = await api.login(login_name.text, login_password.text)
 	_set_login_disabled(false)
 
 	if token:
 		cfg.set_value("api", "token", token)
 		cfg.save(CONFIG_FILE_PATH)
-		yield(_populate_login(), "completed")
+		await _populate_login()
 	else:
 		OS.alert('Please check username and password and try again.', 'Cannot login')
 		_logout()
@@ -189,10 +190,10 @@ func _populate_login():
 	search_domain.show()
 
 	_set_login_disabled(true)
-	var user = yield(api.get_my_info(), "completed")
+	var user = await api.get_my_info()
 	_set_login_disabled(false)
 
-	if !user || typeof(user) != TYPE_DICTIONARY:
+	if user == null || typeof(user) != TYPE_DICTIONARY:
 		_logout()
 		return
 
@@ -239,7 +240,7 @@ func _logout():
 	search_domain.set_meta("__suffix", SEARCH_DOMAIN[0][1])
 
 func _load_categories():
-	var result = yield(api.get_categories(), "completed")
+	var result = await api.get_categories()
 	if typeof(result) != TYPE_DICTIONARY:
 		return
 
@@ -258,8 +259,8 @@ func _search():
 	paginator.search(
 		search_text.text,
 		search_categories.get_meta("__slugs"),
-		search_animated.pressed,
-		search_staff_picked.pressed,
+		search_animated.button_pressed,
+		search_staff_picked.button_pressed,
 		search_face_count.get_meta("__data")[1],
 		search_face_count.get_meta("__data")[2],
 		search_sort_by.get_meta("__key"),

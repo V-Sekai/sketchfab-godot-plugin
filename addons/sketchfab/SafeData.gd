@@ -1,10 +1,13 @@
-tool
+@tool
 
 static func string(data, key):
 	return data[key] if _safe_has_key(data, key) && typeof(data[key]) == TYPE_STRING else ""
 
 static func integer(data, key):
-	return int(data[key]) if _safe_has_key(data, key) && typeof(data[key]) in [TYPE_INT, TYPE_REAL] else 0
+	return data[key] if _safe_has_key(data, key) && typeof(data[key]) == TYPE_INT else 0
+	
+static func float(data, key):
+	return data[key] if _safe_has_key(data, key) && typeof(data[key]) == TYPE_FLOAT else 0.0
 
 static func array(data, key):
 	return data[key] if _safe_has_key(data, key) && typeof(data[key]) == TYPE_ARRAY else []

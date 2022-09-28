@@ -8,10 +8,10 @@ func _init():
 	var zip_path
 	for arg in OS.get_cmdline_args():
 		if arg.begins_with(ARG_PREFIX):
-			zip_path = arg.right(ARG_PREFIX.length())
+			zip_path = arg.right(arg.length() - ARG_PREFIX.length())
 			break
 
-	if !zip_path:
+	if zip_path == null:
 		print("No file specified")
 		return
 
@@ -36,7 +36,7 @@ func unpack_dir(src_path, out_path):
 
 	var dir = Directory.new()
 	dir.open(src_path)
-	dir.list_dir_begin(true)
+	dir.list_dir_begin()
 
 	var file_name = dir.get_next()
 	while file_name != "":
@@ -51,7 +51,7 @@ func unpack_dir(src_path, out_path):
 			print("File: %s -> %s" % [file_src_path, file_out_path])
 			var file = File.new()
 			file.open(file_src_path, File.READ)
-			var data = file.get_buffer(file.get_len())
+			var data = file.get_buffer(file.get_length())
 			file.close()
 			file.open(file_out_path, File.WRITE)
 			file.store_buffer(data)

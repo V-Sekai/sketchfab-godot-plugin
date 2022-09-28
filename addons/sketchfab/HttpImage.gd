@@ -1,25 +1,30 @@
-tool
-extends Control
+@tool
+extends TextureRect
 
 const MAX_COUNT = 4
 
-export var max_size = 256
-export var background = Color(0, 0, 0, 0)
-export var immediate = false
+@export var max_size = 256
+@export var background = Color(0, 0, 0, 0)
+@export var immediate = false
 
-var url setget _set_url
+var url:
+	get:
+		return url
+	set(url):
+		url_to_load = url
+		if !is_inside_tree():
+			return
+		_start_load()
+		
 var url_to_load
-
 var http = HTTPRequest.new()
 var busy
-
-var texture
 
 func _enter_tree():
 	if !get_tree().has_meta("__http_image_count"):
 		get_tree().set_meta("__http_image_count", 0)
 
-	if !http.get_parent():
+	if http.get_parent() == null:
 		add_child(http)
 
 	busy = false
@@ -36,7 +41,7 @@ func _draw():
 	var rect = Rect2(0, 0, get_rect().size.x, get_rect().size.y)
 	draw_rect(rect, background)
 
-	if !texture:
+	if texture == null:
 		return
 
 	var tw = texture.get_width()
@@ -53,19 +58,13 @@ func _draw():
 
 	draw_texture_rect(texture, rect, false)
 
-func _set_url(url):
-	url_to_load = url
-	if !is_inside_tree():
-		return
-
-	_start_load()
-
 func _start_load():
+	print("loading image")
 	http.cancel_request()
 	texture = null
-	update()
+	update_minimum_size()
 
-	if !url_to_load:
+	if url_to_load == null:
 		return
 
 	while true:
@@ -76,7 +75,7 @@ func _start_load():
 			get_tree().set_meta("__http_image_count", count + 1)
 			break
 		else:
-			yield(get_tree(), "idle_frame")
+			await get_tree().process_frame
 
 	_load(url_to_load)
 	url_to_load = null
@@ -85,7 +84,7 @@ func _load(url_to_load):
 	http.request(url_to_load, [], false)
 
 	busy = true
-	var data = yield(http, "request_completed")
+	var data = await http.request_completed
 
 	busy = false
 	get_tree().set_meta("__http_image_count", get_tree().get_meta("__http_image_count") - 1)
@@ -109,6 +108,5 @@ func _load(url_to_load):
 			var new_h = min(h, max_size)
 			img.resize((float(w) / h) * new_h, new_h)
 
-		texture = ImageTexture.new()
+		texture = ImageTexture.create_from_image(img)
 		texture.create_from_image(img)
-		update()

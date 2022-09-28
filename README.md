@@ -8,7 +8,7 @@
 
 ## Installation
 
-Download the **sketchfab.zip** archive attached to the [latest release](https://github.com/sketchfab/godot-plugin/releases/latest) of the plugin, and unzip it.
+Download the **sketchfab.zip** archive attached to the [latest release](https://github.com/StrayEddy/sketchfab-godot-plugin/releases/latest) of the plugin, and unzip it.
 
 If you already have some plugins installed in your project, you will only need to copy the extracted directory to the `addons` directory (which you will need to create first if you did not use plugins previously).
 

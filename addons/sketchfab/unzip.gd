@@ -26,34 +26,33 @@ func _init():
 	var base_name = name_regex.search(zip_path).get_string(1)
 
 	var out_path = zip_path.left(zip_path.find(base_name)) + base_name + "/"
-	Directory.new().make_dir(out_path)
 	unpack_dir("res://", out_path)
 
 	print("Done!")
 
 func unpack_dir(src_path, out_path):
+	var dir = DirAccess.open("/")
+	if !dir.dir_exists(out_path):
+		dir.make_dir(out_path)
+	
 	print("Directory: %s -> %s" % [src_path, out_path])
 
-	var dir = Directory.new()
-	dir.open(src_path)
-	dir.list_dir_begin()
+	var dir2 = DirAccess.open(src_path)
+	dir2.list_dir_begin()
 
-	var file_name = dir.get_next()
+	var file_name = dir2.get_next()
 	while file_name != "":
-		if dir.current_is_dir():
+		if dir2.current_is_dir():
 			var new_src_path = "%s%s/" % [src_path, file_name]
 			var new_out_path = "%s%s/" % [out_path, file_name]
-			Directory.new().make_dir(new_out_path)
 			unpack_dir(new_src_path, new_out_path)
 		else:
 			var file_src_path = "%s%s" % [src_path, file_name]
 			var file_out_path = "%s%s" % [out_path, file_name]
 			print("File: %s -> %s" % [file_src_path, file_out_path])
-			var file = File.new()
-			file.open(file_src_path, File.READ)
-			var data = file.get_buffer(file.get_length())
-			file.close()
-			file.open(file_out_path, File.WRITE)
-			file.store_buffer(data)
-			file.close()
-		file_name = dir.get_next()
+			var read_file = FileAccess.open(file_src_path, FileAccess.READ)
+			var data = read_file.get_buffer(read_file.get_length())
+			
+			var write_file = FileAccess.open(file_out_path, FileAccess.WRITE)
+			write_file.store_buffer(data)
+		file_name = dir2.get_next()

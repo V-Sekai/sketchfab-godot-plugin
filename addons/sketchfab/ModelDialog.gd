@@ -148,7 +148,7 @@ func _on_download_pressed():
 
 	downloader = Requestor.new(host, true)
 
-	var dir = Directory.new()
+	var dir = DirAccess.open("res://")
 	dir.make_dir("res://sketchfab")
 
 	var file_regex = RegEx.new()

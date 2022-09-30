@@ -219,8 +219,8 @@ func request(path, payload = null, options = DEFAULT_OPTIONS):
 		else:
 			total_bytes = -1
 
-		file = File.new()
-		if file.open(out_path, File.WRITE) != OK:
+		file = FileAccess.open(out_path, FileAccess.WRITE)
+		if file == null:
 			busy = false
 			emit_signal("completed", Result.new(-1))
 			return
@@ -243,8 +243,6 @@ func request(path, payload = null, options = DEFAULT_OPTIONS):
 			await Engine.get_main_loop().process_frame
 			last_yield = time
 			if terminated:
-				if file:
-					file.close()
 				if LOG_LEVEL >= 2:
 					print("TERMINATE HONORED")
 				return
@@ -252,8 +250,6 @@ func request(path, payload = null, options = DEFAULT_OPTIONS):
 				if LOG_LEVEL >= 2:
 					print("CANCEL HONORED (HARD)")
 				http.close()
-				if file:
-					file.close()
 				canceled = false
 				busy = false
 				emit_signal("completed", null)
@@ -265,16 +261,12 @@ func request(path, payload = null, options = DEFAULT_OPTIONS):
 			HTTPClient.STATUS_DISCONNECTED,
 			HTTPClient.STATUS_CONNECTION_ERROR
 		] && !terminated && !canceled:
-			if file:
-				file.close()
 			busy = false
 			emit_signal("completed", Result.new(-1))
 			return
 
 	await Engine.get_main_loop().process_frame
 	if terminated:
-		if file:
-			file.close()
 		if LOG_LEVEL >= 2:
 			print("TERMINATE HONORED")
 		return
@@ -282,8 +274,6 @@ func request(path, payload = null, options = DEFAULT_OPTIONS):
 		if LOG_LEVEL >= 2:
 			print("CANCEL HONORED (HARD)")
 		http.close()
-		if file:
-			file.close()
 		canceled = false
 		busy = false
 		emit_signal("completed", null)
@@ -292,7 +282,6 @@ func request(path, payload = null, options = DEFAULT_OPTIONS):
 	busy = false
 
 	if file:
-		file.close()
 		if LOG_LEVEL >= 1:
 			print("DOWNLOAD FINISHED")
 	else:

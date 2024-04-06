@@ -239,15 +239,13 @@ func _logout():
 	search_domain.set_meta("__suffix", SEARCH_DOMAIN[0][1])
 
 func _load_categories():
-	var popup = search_categories.get_popup()
-	popup.clear()
-
 	var result = await api.get_categories()
 	if typeof(result) != TYPE_DICTIONARY:
 		return
 
 	var categories = SafeData.array(result, "results")
 	var i = 0
+	var popup = search_categories.get_popup()
 	for category in categories:
 		popup.add_check_item(SafeData.string(category, "name"))
 		popup.set_item_metadata(i + 1, SafeData.string(category, "slug"))
